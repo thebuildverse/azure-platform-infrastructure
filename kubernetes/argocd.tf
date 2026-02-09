@@ -40,7 +40,7 @@ resource "helm_release" "argocd" {
         server.insecure: true
       cm:
         url: https://argocd.${var.domain_name}
-        admin.enabled: "false"
+        admin.enabled: "true"
         dex.config: |
           connectors:
             - type: github
@@ -60,6 +60,7 @@ resource "helm_release" "argocd" {
           p, role:admin, projects, *, *, allow
           p, role:admin, logs, *, *, allow
           p, role:admin, exec, *, */*, allow
+          g, ${var.argocd_github_org}:*, role:admin
           g, ${join(", role:admin\n          g, ", var.argocd_admin_users)}, role:admin
 
     # Resource limits for Standard_D2as_v4 nodes

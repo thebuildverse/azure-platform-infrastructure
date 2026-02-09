@@ -83,7 +83,7 @@ locals {
   # MONITORING
   # ---------------------------------------------------------------------------
   monitoring = {
-    grafana_sku           = "Essential"
+    grafana_sku           = "Standard"
     log_retention_days    = 30
     grafana_major_version = 11
   }
@@ -108,11 +108,11 @@ locals {
     # Kyverno - Kubernetes admission controller for policy enforcement
     # When enabled, deploys Kyverno and optionally its policies
     enable_kyverno         = true  # Deploy Kyverno Helm chart
-    enable_kyverno_policies = true # Apply Kyverno policies (requires enable_kyverno = true)
+    enable_kyverno_policies = false # Apply Kyverno policies (requires enable_kyverno = true)
 
     # Cilium Network Policies - Zero-trust network security
     # When enabled, applies CiliumNetworkPolicies to restrict pod communication
-    enable_cilium_policies = true
+    enable_cilium_policies = false
 
     # Image Registry Restriction - Only allow images from approved registries
     # When enabled, Kyverno will only allow images from allowed_registries list

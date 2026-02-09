@@ -84,16 +84,16 @@ resource "helm_release" "kyverno" {
       excludeUsernames:
         - system:kube-scheduler
       webhooks:
-        - namespaceSelector:
-            matchExpressions:
-              - key: kubernetes.io/metadata.name
-                operator: NotIn
-                values:
-                  - kube-system
-                  - kube-public
-                  - kube-node-lease
-                  - kyverno
-                  - cilium
+        namespaceSelector:
+          matchExpressions:
+            - key: kubernetes.io/metadata.name
+              operator: NotIn
+              values:
+                - kube-system
+                - kube-public
+                - kube-node-lease
+                - kyverno
+                - cilium
   YAML
   ]
 }

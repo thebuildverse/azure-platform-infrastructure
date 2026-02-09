@@ -26,11 +26,11 @@ Before deploying, you must complete these steps:
 
 ```bash
 # Create DNS Zone resource group and zone
-az group create --name rg-dns --location eastus
-az network dns zone create --resource-group rg-dns --name yourdomain.com
+az group create --name dns-rg --location eastus
+az network dns zone create --resource-group dns-rg --name yourdomain.com
 
 # Update your domain registrar's nameservers to Azure's NS records
-az network dns zone show --resource-group rg-dns --name yourdomain.com --query nameServers
+az network dns zone show --resource-group dns-rg --name yourdomain.com --query nameServers
 ```
 
 ### 2. GitHub OAuth App (For ArgoCD SSO)
@@ -72,7 +72,7 @@ locals {
   # Required: Your domain (must exist in Azure DNS)
   dns = {
     zone_name           = "yourdomain.com"
-    zone_resource_group = "rg-dns"
+    zone_resource_group = "dns-rg"
     cert_manager_email  = "admin@yourdomain.com"
   }
 
@@ -128,7 +128,7 @@ terraform apply
 │  │  └────────┬────────┘    │    └─────────────────────────────────┘ │
 │  │           │             │                                        │
 │  │  ┌────────┴────────┐    │    ┌─────────────────────────────────┐ │
-│  │  │      VNet       │    │    │         rg-dns                  │ │
+│  │  │      VNet       │    │    │         dns-rg                  │ │
 │  │  │ ┌─────┐ ┌─────┐ │    │    │  ┌──────────────────────────┐   │ │
 │  │  │ │Node │ │ Pod │ │    │    │  │    DNS Zone              │   │ │
 │  │  │ │Snet │ │Snet │ │    │    │  │  (managed separately)    │   │ │
