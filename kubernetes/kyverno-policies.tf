@@ -3,12 +3,11 @@
 # =============================================================================
 # This file contains all Kyverno policies for cluster security and resource
 # management. Policies are in AUDIT mode by default - they log violations but
-# don't block deployments. Change validationFailureAction to "Audit" when ready.
+# don't block deployments. Change validationFailureAction to "Enforce" when ready.
 #
 # Policy Categories:
 # 1. Security Policies - Audit secure container configurations
 # 2. Resource Management - Ensure proper resource allocation
-# 3. Mutation Policies - Automatically fix common misconfigurations
 #
 # Toggle: Set enable_kyverno_policies = false in locals.tf to disable all policies
 # =============================================================================
@@ -552,33 +551,37 @@ resource "kubectl_manifest" "policy_require_resource_requests" {
 }
 
 # =============================================================================
-# MUTATION POLICY: ADD DEFAULT SECURITY CONTEXT
+# AUDIT POLICY: RECOMMEND SECURITY CONTEXT
 # =============================================================================
-# Effect: Automatically adds secure defaults to pods missing security settings
-# What it adds:
-#      - runAsNonRoot: true (don't run as root)
-#      - allowPrivilegeEscalation: false (prevent privilege escalation)
-#      - capabilities.drop: ["ALL"] (drop all Linux capabilities)
-# Why: Defense in depth - even if developers forget, pods get secured
-# Applies to: default and apps-* namespaces only
-resource "kubectl_manifest" "policy_add_default_securitycontext" {
+# Effect: Logs warnings for pods missing recommended security context settings
+# What it checks:
+#      - runAsNonRoot: true
+#      - allowPrivilegeEscalation: false
+#      - readOnlyRootFilesystem: true
+#      - capabilities.drop: ["ALL"]
+# Why: Visibility into which pods lack hardened security settings
+# Note: Does NOT mutate or block - audit only
+resource "kubectl_manifest" "policy_audit_securitycontext" {
   count = var.enable_kyverno_policies ? 1 : 0
 
   yaml_body = <<-YAML
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
     metadata:
-      name: add-default-securitycontext
+      name: audit-default-securitycontext
       annotations:
-        policies.kyverno.io/title: Add Default Security Context
+        policies.kyverno.io/title: Audit Security Context Settings
         policies.kyverno.io/category: Pod Security
         policies.kyverno.io/severity: low
         policies.kyverno.io/description: >-
-          Automatically adds secure default security context settings to pods
-          that don't specify them. This provides defense in depth.
+          Audits pods for recommended security context settings including
+          runAsNonRoot, allowPrivilegeEscalation, readOnlyRootFilesystem,
+          and dropping all capabilities. Logs violations only.
     spec:
+      validationFailureAction: Audit
+      background: true
       rules:
-        - name: add-security-context
+        - name: check-security-context
           match:
             any:
               - resources:
@@ -587,17 +590,20 @@ resource "kubectl_manifest" "policy_add_default_securitycontext" {
                   namespaces:
                     - "default"
                     - "apps-*"
-          mutate:
-            patchStrategicMerge:
+          validate:
+            message: >-
+              Container is missing recommended security context settings.
+              Recommended: runAsNonRoot=true, allowPrivilegeEscalation=false,
+              readOnlyRootFilesystem=true, drop ALL capabilities.
+            pattern:
               spec:
                 containers:
-                  - (name): "*"
-                    securityContext:
-                      +(runAsNonRoot): true
-                      +(allowPrivilegeEscalation): false
-                      +(readOnlyRootFilesystem): true
-                      +(capabilities):
-                        +(drop):
+                  - securityContext:
+                      runAsNonRoot: true
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                        drop:
                           - ALL
   YAML
 
@@ -605,34 +611,35 @@ resource "kubectl_manifest" "policy_add_default_securitycontext" {
 }
 
 # =============================================================================
-# MUTATION POLICY: ADD DEFAULT RESOURCE LIMITS
+# AUDIT POLICY: RECOMMEND RESOURCE LIMITS
 # =============================================================================
-# Effect: Automatically adds resource requests/limits to pods without them
-# Default values (conservative for Standard_D2as_v4 nodes):
-#      - Requests: 50m CPU, 64Mi memory
-#      - Limits: 200m CPU, 256Mi memory
-# Why: Prevents unbounded resource usage without burdening developers
-# Applies to: default and apps-* namespaces only
-# Note: These are conservative defaults - override in your deployments as needed
-resource "kubectl_manifest" "policy_add_default_resources" {
+# Effect: Logs warnings for pods missing resource requests/limits
+# What it checks:
+#      - CPU and memory requests
+#      - CPU and memory limits
+# Why: Visibility into which pods lack resource boundaries
+# Note: Does NOT mutate or block - audit only
+resource "kubectl_manifest" "policy_audit_resources" {
   count = var.enable_kyverno_policies ? 1 : 0
 
   yaml_body = <<-YAML
     apiVersion: kyverno.io/v1
     kind: ClusterPolicy
     metadata:
-      name: add-default-resources
+      name: audit-default-resources
       annotations:
-        policies.kyverno.io/title: Add Default Resource Limits
+        policies.kyverno.io/title: Audit Resource Requests and Limits
         policies.kyverno.io/category: Resource Management
         policies.kyverno.io/severity: low
         policies.kyverno.io/description: >-
-          Automatically adds default resource requests and limits to pods
-          that don't specify them. This prevents unbounded resource usage.
-          Defaults: requests 50m CPU/64Mi memory, limits 200m CPU/256Mi memory.
+          Audits pods for resource requests and limits. Pods without proper
+          resource allocation can cause node instability and scheduling issues.
+          Logs violations only.
     spec:
+      validationFailureAction: Audit
+      background: true
       rules:
-        - name: add-default-resources
+        - name: check-resource-requests-and-limits
           match:
             any:
               - resources:
@@ -641,18 +648,20 @@ resource "kubectl_manifest" "policy_add_default_resources" {
                   namespaces:
                     - "default"
                     - "apps-*"
-          mutate:
-            patchStrategicMerge:
+          validate:
+            message: >-
+              Container is missing resource requests and/or limits.
+              Recommended: set CPU and memory for both requests and limits.
+            pattern:
               spec:
                 containers:
-                  - (name): "*"
-                    resources:
-                      +(requests):
-                        +(cpu): "50m"
-                        +(memory): "64Mi"
-                      +(limits):
-                        +(cpu): "200m"
-                        +(memory): "256Mi"
+                  - resources:
+                      requests:
+                        cpu: "?*"
+                        memory: "?*"
+                      limits:
+                        cpu: "?*"
+                        memory: "?*"
   YAML
 
   depends_on = [time_sleep.wait_for_kyverno]

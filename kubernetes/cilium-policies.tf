@@ -1,5 +1,5 @@
 # =============================================================================
-# CILIUM NETWORK POLICIES
+# CILIUM NETWORK POLICIES (Simplified)
 # =============================================================================
 # Secures application namespaces ("default" and "apps-*") with zero-trust:
 #   1. Default deny all traffic in app namespaces
@@ -41,11 +41,13 @@ resource "kubectl_manifest" "cilium_default_deny_default_ns" {
 }
 
 # =============================================================================
-# DEFAULT DENY — ALL "apps-*" NAMESPACES (Cluster-wide)
+# DEFAULT DENY — ALL APP NAMESPACES (Cluster-wide)
 # =============================================================================
-# A single cluster-wide policy that applies default-deny to every namespace
-# matching the "apps-" prefix. No need to add a per-namespace policy each
-# time you create apps-foo, apps-bar, etc.
+# Applies default-deny to every namespace labeled:
+#   scope: apps
+#
+# To onboard a new app namespace, just add that label to the namespace:
+#   kubectl label namespace apps-myapp scope=apps
 # =============================================================================
 
 resource "kubectl_manifest" "cilium_default_deny_apps" {
@@ -57,13 +59,10 @@ resource "kubectl_manifest" "cilium_default_deny_apps" {
     metadata:
       name: default-deny-apps
     spec:
-      description: "Default deny all traffic in apps-* namespaces"
+      description: "Default deny all traffic in app namespaces (scope=apps)"
       endpointSelector:
-        matchExpressions:
-          - key: k8s:io.kubernetes.pod.namespace
-            operator: MatchesRegexp
-            values:
-              - "^apps-.*"
+        matchLabels:
+          k8s:io.kubernetes.pod.namespace.labels.scope: apps
       ingress:
         - {}
       egress:
