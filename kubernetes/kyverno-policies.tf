@@ -3,10 +3,10 @@
 # =============================================================================
 # This file contains all Kyverno policies for cluster security and resource
 # management. Policies are in AUDIT mode by default - they log violations but
-# don't block deployments. Change validationFailureAction to "Enforce" when ready.
+# don't block deployments. Change validationFailureAction to "Audit" when ready.
 #
 # Policy Categories:
-# 1. Security Policies - Enforce secure container configurations
+# 1. Security Policies - Audit secure container configurations
 # 2. Resource Management - Ensure proper resource allocation
 # 3. Mutation Policies - Automatically fix common misconfigurations
 #
@@ -355,7 +355,7 @@ resource "kubectl_manifest" "policy_disallow_latest_tag" {
           Images must use explicit version tags, not :latest. This ensures
           reproducibility and auditability of deployments.
     spec:
-      validationFailureAction: Audit
+      validationFailureAction: Enforce
       background: true
       rules:
         - name: validate-image-tag

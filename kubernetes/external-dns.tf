@@ -19,9 +19,6 @@ resource "helm_release" "external_dns" {
   timeout          = 600
 
   # --- Fast cleanup settings for dev environments ---
-  # Prevents webhook deadlocks during destroy (e.g., Kyverno/ArgoCD webhooks
-  # blocking their own deletion), skips waiting for graceful pod termination,
-  # and ensures Helm doesn't hang on failed or stuck releases.
   disable_webhooks = true
   cleanup_on_fail  = true
   force_update     = true

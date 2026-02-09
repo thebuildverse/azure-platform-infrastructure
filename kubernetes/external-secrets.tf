@@ -19,14 +19,6 @@ resource "helm_release" "external_secrets" {
   create_namespace = true
   timeout          = 600
 
-  # --- Fast cleanup settings for dev environments ---
-  disable_webhooks = true
-  cleanup_on_fail  = true
-  force_update     = true
-  replace          = true
-  wait             = false
-  wait_for_jobs    = false
-
   # Phase 4: Depends on ArgoCD being ready
   depends_on = [helm_release.argocd]
 

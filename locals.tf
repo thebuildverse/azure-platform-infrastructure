@@ -108,7 +108,7 @@ locals {
     # Kyverno - Kubernetes admission controller for policy enforcement
     # When enabled, deploys Kyverno and optionally its policies
     enable_kyverno         = true  # Deploy Kyverno Helm chart
-    enable_kyverno_policies = false # Apply Kyverno policies (requires enable_kyverno = true)
+    enable_kyverno_policies = true # Apply Kyverno policies (requires enable_kyverno = true)
 
     # Cilium Network Policies - Zero-trust network security
     # When enabled, applies CiliumNetworkPolicies to restrict pod communication

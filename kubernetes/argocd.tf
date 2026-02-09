@@ -30,11 +30,6 @@ resource "helm_release" "argocd" {
   namespace        = "argocd"
   create_namespace = false
   timeout          = 900
-  disable_webhooks = true
-  cleanup_on_fail  = true
-
-  # Don't let Helm keep CRDs around - they cause stuck finalizers
-  skip_crds = false
 
   values = [<<-YAML
     global:
@@ -58,15 +53,6 @@ resource "helm_release" "argocd" {
                   - name: ${var.argocd_github_org}
       rbac:
         policy.default: role:admin
-        policy.csv: |
-          p, role:admin, applications, *, */*, allow
-          p, role:admin, clusters, *, *, allow
-          p, role:admin, repositories, *, *, allow
-          p, role:admin, projects, *, *, allow
-          p, role:admin, logs, *, *, allow
-          p, role:admin, exec, *, */*, allow
-          g, ${var.argocd_github_org}:*, role:admin
-          g, ${join(", role:admin\n          g, ", var.argocd_admin_users)}, role:admin
 
     # Resource limits for Standard_D2as_v4 nodes
     server:

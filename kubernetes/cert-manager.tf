@@ -19,14 +19,6 @@ resource "helm_release" "cert_manager" {
   create_namespace = true
   timeout          = 600
 
-  # --- Fast cleanup settings for dev environments ---
-  disable_webhooks = true
-  cleanup_on_fail  = true
-  force_update     = true
-  replace          = true
-  wait             = false
-  wait_for_jobs    = false
-
   # Phase 2: Depends on ingress-nginx being ready
   depends_on = [time_sleep.wait_for_ingress]
 
@@ -94,11 +86,6 @@ resource "helm_release" "cert_manager" {
   set {
     name  = "cainjector.resources.limits.memory"
     value = "256Mi"
-  }
-
-  set {
-    name  = "crds.keep"
-    value = "false"
   }
 }
 

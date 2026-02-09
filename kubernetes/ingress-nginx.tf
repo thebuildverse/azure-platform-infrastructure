@@ -17,14 +17,6 @@ resource "helm_release" "ingress_nginx" {
   create_namespace = true
   timeout          = 600
 
-  # --- Fast cleanup settings for dev environments ---
-  disable_webhooks = true
-  cleanup_on_fail  = true
-  force_update     = true
-  replace          = true
-  wait             = false
-  wait_for_jobs    = false
-
   # No dependencies - this is Phase 1
 
   set {
