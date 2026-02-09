@@ -25,6 +25,14 @@ resource "helm_release" "kyverno" {
   create_namespace = true
   timeout          = 600
 
+  # Clean up webhooks before uninstalling to prevent deadlock
+  cleanup_on_fail = true
+  force_update    = false
+
+  # This is critical - don't wait forever on destroy
+  disable_webhooks = true   # Disables webhook validation during Helm operations
+
+
   # Kyverno deploys alongside ingress-nginx (no dependencies)
   # This is safe because Kyverno doesn't depend on any other cluster components
 
