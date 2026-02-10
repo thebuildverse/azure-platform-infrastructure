@@ -35,9 +35,9 @@ Production-grade AKS infrastructure managed entirely through Terraform and Terra
 
 This diagram shows how the infrastructure in **this repo** connects to the application lifecycle managed in [`demo-app`](https://github.com/thebuildverse/demo-app). Everything below the dashed line is what this repo deploys; everything above it is what the demo-app repo handles.
 
-![Platform Architecture](platform-infrastructure-architecture.svg)
+![Platform Architecture](assets/platform-infrastructure-architecture.svg)
 
-> An interactive HTML version of this diagram is also available at [`assets/platform-architecture.html`](assets/platform-architecture.html).
+> An interactive version of this diagram is also available at [`https://bytiv.github.io/diagrams/platform-architecture.html`](https://bytiv.github.io/diagrams/platform-architecture.html).
 
 ---
 
