@@ -1,6 +1,6 @@
 # Azure Platform Infrastructure
 
-Production-grade AKS infrastructure managed entirely through Terraform and Terraform Cloud. Deploys a fully operational Kubernetes platform with GitOps, policy enforcement, secrets management, observability, and automatic DNS/TLS — ready for application workloads from day one.
+Production-grade AKS infrastructure managed entirely through Terraform and Terraform Cloud. Deploys a fully operational Kubernetes platform with GitOps, policy enforcement, secrets management, observability, and automatic DNS/TLS — ready for application workloads on provisioning.
 
 > **Part of a two-repo setup.** This repo provisions the underlying platform. Once deployed, head to [`thebuildverse/demo-app`](https://github.com/thebuildverse/demo-app) to deploy a sample application that exercises the full pipeline — CI/CD via GitHub Actions, image delivery through ACR, GitOps sync with ArgoCD, and secrets pulled from Azure Key Vault via External Secrets Operator.
 
@@ -25,7 +25,7 @@ Production-grade AKS infrastructure managed entirely through Terraform and Terra
 | **DNS** | ExternalDNS for automatic DNS record management ([learn more](https://blog.devgenius.io/externaldns-and-host-based-tls-ingress-in-aks-cluster-edf75fae36f3)) |
 | **Secrets** | External Secrets Operator syncing from Azure Key Vault via workload identity ([learn more](https://external-secrets.io/latest/provider/azure-key-vault/#mounted-service-account)) |
 | **GitOps** | ArgoCD with GitHub SSO ([learn more](https://argo-cd.readthedocs.io/en/stable/operator-manual/user-management/)) |
-| **Policy Engine** | Kyverno for admission control and audit-based policy enforcement |
+| **Policy Engine** | Kyverno for admission control and audit based policy enforcement |
 | **Network Security** | Cilium Network Policies for zero-trust networking *(under active development — see note below)* |
 | **Identity & Access** | Azure AD groups for AKS, Key Vault, and monitoring RBAC |
 
@@ -171,9 +171,19 @@ This project is designed to run on Terraform Cloud. You can optionally configure
 
 ### Step 1: Edit `locals.tf` & `versions.tf`
 
-Update the values in `locals.tf` to match your environment, and configure your Terraform Cloud organization/workspace in `versions.tf`:
+Update the values in `locals.tf` to match your environment, and configure your Terraform Cloud organization/workspace:
 
 ```hcl
+
+terraform {
+  cloud {
+    organization = "your-terraform-cloud-org"
+    workspaces {
+      name = "your-workspace"
+    }
+  }
+}
+
 locals {
   # Required: Your environment
   environment = "dev"
@@ -189,7 +199,7 @@ locals {
 
   # Required: ArgoCD GitHub SSO
   argocd = {
-    github_org   = "your-github-org"
+    github_org   = "your-github-org-name"
     admin_users  = ["your-github-username"]
   }
 
@@ -202,15 +212,6 @@ locals {
   }
 }
 
-# versions.tf
-terraform {
-  cloud {
-    organization = "your-terraformCloud-org"
-    workspaces {
-      name = "your-workspace"
-    }
-  }
-}
 ```
 
 ### Step 2: Deploy
@@ -492,22 +493,13 @@ Update secrets in Key Vault; External Secrets Operator syncs automatically (defa
    ```
 3. Policies are in audit mode by default — they report but don't block. If deployments are being rejected, verify no one has changed a policy to enforce mode.
 
-### Kyverno Webhook Timeout
-
-If the API server is slow due to Kyverno webhooks:
-
-```bash
-kubectl delete validatingwebhookconfiguration kyverno-resource-validating-webhook-cfg
-kubectl delete mutatingwebhookconfiguration kyverno-resource-mutating-webhook-cfg
-# Then redeploy with terraform apply
-```
-
 ---
 
 ## References & Further Reading
 
 | Topic | Link |
 |-------|------|
+| Deploy Azure Infrastructure using Terraform Cloud | [Tutorial](https://dev.to/playfulprogramming/deploy-azure-infrastructure-using-terraform-cloud-3j9d) |
 | Terraform Cloud SSO with Azure Entra ID | [HashiCorp Docs](https://developer.hashicorp.com/terraform/cloud-docs/users-teams-organizations/single-sign-on/entra-id) |
 | External Secrets Operator with Azure Key Vault | [ESO Documentation](https://external-secrets.io/latest/provider/azure-key-vault/#mounted-service-account) |
 | ExternalDNS & Host-Based TLS Ingress in AKS | [DevGenius Guide](https://blog.devgenius.io/externaldns-and-host-based-tls-ingress-in-aks-cluster-edf75fae36f3) |
