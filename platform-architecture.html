@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuildVerse — Full Platform Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #06090f;
+    --surface: #0d1320;
+    --surface-2: #131c2e;
+    --surface-3: #192440;
+    --border: #1a2744;
+    --border-light: #243354;
+    --text: #e2e8f0;
+    --text-dim: #5a6d8a;
+    --text-muted: #3d5070;
+    --blue: #3b82f6;
+    --cyan: #06b6d4;
+    --purple: #8b5cf6;
+    --green: #10b981;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --pink: #ec4899;
+    --teal: #14b8a6;
+    --indigo: #6366f1;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: auto;
+  }
+
+  /* Background effects */
+  .bg-grid {
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.025) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+  }
+  .glow { position: fixed; border-radius: 50%; filter: blur(160px); opacity: 0.08; pointer-events: none; }
+  .glow-1 { width: 500px; height: 500px; top: -150px; left: 10%; background: var(--blue); }
+  .glow-2 { width: 400px; height: 400px; bottom: -100px; right: 5%; background: var(--purple); }
+  .glow-3 { width: 300px; height: 300px; top: 40%; left: 50%; background: var(--cyan); }
+
+  .page { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 36px 28px 60px; }
+
+  /* Header */
+  header { text-align: center; margin-bottom: 36px; animation: fadeIn 0.5s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
+
+  .tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--cyan);
+    background: rgba(6,182,212,0.07);
+    border: 1px solid rgba(6,182,212,0.18);
+    padding: 5px 14px; border-radius: 100px; margin-bottom: 16px;
+  }
+  h1 {
+    font-size: 28px; font-weight: 700; letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #f1f5f9, #64748b);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+  }
+  .sub { font-size: 13px; color: var(--text-dim); font-weight: 300; }
+
+  /* ── SECTION BLOCKS ── */
+  .section {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface);
+    padding: 28px 24px 24px;
+    margin-bottom: 16px;
+    position: relative;
+    animation: sectionIn 0.5s ease backwards;
+  }
+  @keyframes sectionIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  .section-label {
+    position: absolute; top: -10px; left: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+    padding: 2px 12px; border-radius: 6px;
+  }
+  .section-label--app { color: var(--green); background: var(--surface); border: 1px solid rgba(16,185,129,0.25); }
+  .section-label--platform { color: var(--blue); background: var(--surface); border: 1px solid rgba(59,130,246,0.25); }
+
+  /* ── FLOW ROW ── */
+  .flow-row {
+    display: flex; align-items: center; gap: 0;
+    flex-wrap: wrap; justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .flow-node {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    text-align: center;
+    min-width: 120px;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  }
+  .flow-node:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .flow-node .icon { font-size: 22px; margin-bottom: 6px; display: block; }
+  .flow-node .title { font-weight: 600; font-size: 12.5px; margin-bottom: 2px; }
+  .flow-node .desc {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px; color: var(--text-dim);
+  }
+
+  .flow-arrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--text-muted);
+    padding: 0 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .flow-arrow .line { color: var(--border-light); font-size: 16px; }
+  .flow-arrow .label { white-space: nowrap; }
+
+  .flow-down {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 6px 0; color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  }
+  .flow-down .vline {
+    width: 2px; height: 20px; border-left: 2px dashed var(--border-light);
+  }
+
+  /* Color accents on nodes */
+  .n-green { border-color: rgba(16,185,129,0.2); }
+  .n-green:hover { border-color: rgba(16,185,129,0.45); }
+  .n-green .title { color: #6ee7b7; }
+
+  .n-purple { border-color: rgba(139,92,246,0.2); }
+  .n-purple:hover { border-color: rgba(139,92,246,0.45); }
+  .n-purple .title { color: #c4b5fd; }
+
+  .n-blue { border-color: rgba(59,130,246,0.2); }
+  .n-blue:hover { border-color: rgba(59,130,246,0.45); }
+  .n-blue .title { color: #93c5fd; }
+
+  .n-cyan { border-color: rgba(6,182,212,0.2); }
+  .n-cyan:hover { border-color: rgba(6,182,212,0.45); }
+  .n-cyan .title { color: #67e8f9; }
+
+  .n-orange { border-color: rgba(245,158,11,0.2); }
+  .n-orange:hover { border-color: rgba(245,158,11,0.45); }
+  .n-orange .title { color: #fcd34d; }
+
+  .n-pink { border-color: rgba(236,72,153,0.2); }
+  .n-pink:hover { border-color: rgba(236,72,153,0.45); }
+  .n-pink .title { color: #f9a8d4; }
+
+  .n-indigo { border-color: rgba(99,102,241,0.2); }
+  .n-indigo:hover { border-color: rgba(99,102,241,0.45); }
+  .n-indigo .title { color: #a5b4fc; }
+
+  .n-teal { border-color: rgba(20,184,166,0.2); }
+  .n-teal:hover { border-color: rgba(20,184,166,0.45); }
+  .n-teal .title { color: #5eead4; }
+
+  .n-red { border-color: rgba(239,68,68,0.2); }
+  .n-red:hover { border-color: rgba(239,68,68,0.45); }
+  .n-red .title { color: #fca5a5; }
+
+  /* ── AKS CLUSTER ── */
+  .aks-box {
+    border: 1.5px dashed rgba(59,130,246,0.2);
+    border-radius: 14px;
+    background: rgba(59,130,246,0.015);
+    padding: 40px 20px 20px;
+    position: relative;
+    margin-top: 6px;
+  }
+  .aks-label {
+    position: absolute; top: 12px; left: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--blue); opacity: 0.6;
+  }
+
+  /* Component grid inside AKS */
+  .component-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .comp {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .comp:hover { transform: translateY(-2px); }
+  .comp .comp-icon { font-size: 18px; margin-bottom: 5px; display: block; }
+  .comp .comp-name { font-weight: 600; font-size: 12px; margin-bottom: 1px; }
+  .comp .comp-detail {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--text-dim); line-height: 1.4;
+  }
+
+  /* App namespace box */
+  .ns-box {
+    border: 1px dashed rgba(16,185,129,0.2);
+    border-radius: 10px;
+    background: rgba(16,185,129,0.02);
+    padding: 14px 16px;
+    position: relative;
+  }
+  .ns-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px; color: var(--green); opacity: 0.7;
+    margin-bottom: 6px; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .ns-inner {
+    display: flex; gap: 10px; flex-wrap: wrap;
+  }
+
+  /* VNet info */
+  .vnet-info {
+    margin-top: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text-muted);
+    line-height: 1.8;
+    padding-left: 4px;
+  }
+  .vnet-info strong { color: var(--text-dim); font-weight: 500; }
+
+  /* ── Resource Group cards ── */
+  .rg-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  @media (max-width: 700px) { .rg-row { grid-template-columns: 1fr; } }
+
+  .rg-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-2);
+    padding: 16px 18px;
+  }
+  .rg-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .rg-items { display: flex; gap: 8px; flex-wrap: wrap; }
+  .rg-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+    min-width: 100px;
+  }
+  .rg-item .icon { font-size: 20px; margin-bottom: 4px; display: block; }
+  .rg-item .name { font-weight: 600; font-size: 11.5px; }
+  .rg-item .detail { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); }
+
+  /* ── Monitoring bar ── */
+  .monitor-bar {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-2);
+    padding: 14px 20px;
+    margin-top: 12px;
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+  }
+  .monitor-bar .mb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--text-dim); font-weight: 600;
+  }
+  .monitor-bar .mb-item {
+    font-size: 12px; color: var(--text);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .monitor-bar .mb-icon { font-size: 16px; }
+  .monitor-bar .mb-arrow { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .monitor-bar .mb-detail { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--text-dim); }
+
+  /* ── Terraform footer ── */
+  .tf-bar {
+    border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 12px;
+    background: rgba(139,92,246,0.03);
+    padding: 14px 20px;
+    margin-top: 12px;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  }
+  .tf-bar .tf-icon { font-size: 20px; }
+  .tf-bar .tf-text { color: #c4b5fd; font-weight: 500; }
+  .tf-bar .tf-detail { color: var(--text-dim); font-size: 10px; }
+
+  /* ── Divider ── */
+  .divider {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 18px 0 14px;
+  }
+
+  /* Connection hint between sections */
+  .section-connector {
+    display: flex; justify-content: center; margin: -6px 0;
+    position: relative; z-index: 2;
+  }
+  .section-connector .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; color: var(--text-muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 3px 14px; border-radius: 100px;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
+<div class="glow glow-3"></div>
+
+<div class="page">
+  <header>
+    <div class="tag">Full Architecture</div>
+    <h1>BuildVerse Platform Infrastructure</h1>
+    <p class="sub">GitOps · Azure AKS · Terraform Cloud</p>
+  </header>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- APPLICATION LIFECYCLE                        -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="section" style="animation-delay:0.1s;">
+    <span class="section-label section-label--app">Application Lifecycle — demo-app repo</span>
+
+    <div class="flow-row" style="margin-top:8px;">
+      <div class="flow-node n-green">
+        <span class="icon">👨‍💻</span>
+        <div class="title">Developer</div>
+        <div class="desc">code changes</div>
+      </div>
+      <div class="flow-arrow"><span class="line">──▶</span><span class="label">git push</span></div>
+      <div class="flow-node n-purple">
+        <span class="icon">⚡</span>
+        <div class="title">GitHub Actions</div>
+        <div class="desc">CI Pipeline</div>
+      </div>
+      <div class="flow-arrow"><span class="line">──▶</span><span class="label">build & push</span></div>
+      <div class="flow-node n-cyan">
+        <span class="icon">🐳</span>
+        <div class="title">Azure ACR</div>
+        <div class="desc">container images</div>
+      </div>
+    </div>
+
+    <div class="flow-down">
+      <div class="vline"></div>
+      <span>CI commits updated image tag back to k8s/base/</span>
+      <div class="vline"></div>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-node n-orange" style="min-width: 220px;">
+        <span class="icon">🔄</span>
+        <div class="title">ArgoCD detects manifest change</div>
+        <div class="desc">auto-sync → deploys to AKS</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-connector"><span class="pill">▼ syncs into platform ▼</span></div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- PLATFORM SECTION                             -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="section" style="animation-delay:0.25s;">
+    <span class="section-label section-label--platform">Platform — azure-platform-infrastructure repo</span>
+
+    <!-- AKS Cluster -->
+    <div class="aks-box">
+      <span class="aks-label">☸ Azure AKS Cluster</span>
+
+      <!-- Platform Components Grid -->
+      <div class="component-grid">
+        <div class="comp n-orange">
+          <span class="comp-icon">🔄</span>
+          <div class="comp-name">ArgoCD</div>
+          <div class="comp-detail">SSO via GitHub Org</div>
+        </div>
+        <div class="comp n-red">
+          <span class="comp-icon">🛡️</span>
+          <div class="comp-name">Kyverno</div>
+          <div class="comp-detail">Admission Policy</div>
+        </div>
+        <div class="comp n-blue">
+          <span class="comp-icon">🌐</span>
+          <div class="comp-name">Ingress NGINX</div>
+          <div class="comp-detail">L7 load balancing</div>
+        </div>
+        <div class="comp n-green">
+          <span class="comp-icon">🔒</span>
+          <div class="comp-name">cert-manager</div>
+          <div class="comp-detail">Let's Encrypt TLS</div>
+        </div>
+        <div class="comp n-indigo">
+          <span class="comp-icon">📡</span>
+          <div class="comp-name">External-DNS</div>
+          <div class="comp-detail">Azure DNS sync</div>
+        </div>
+        <div class="comp n-pink">
+          <span class="comp-icon">🔐</span>
+          <div class="comp-name">External Secrets</div>
+          <div class="comp-detail">ESO → Key Vault</div>
+        </div>
+        <div class="comp n-teal">
+          <span class="comp-icon">🕸️</span>
+          <div class="comp-name">Cilium CNI</div>
+          <div class="comp-detail">Network Policy</div>
+        </div>
+        <div class="comp n-cyan">
+          <span class="comp-icon">📊</span>
+          <div class="comp-name">Prometheus</div>
+          <div class="comp-detail">Azure Managed</div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- App Namespace -->
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="ns-box">
+          <div class="ns-label">📁 App Namespace (apps-*)</div>
+          <div class="ns-inner">
+            <div class="flow-node n-green" style="min-width:auto; padding: 10px 14px;">
+              <span class="icon" style="font-size:18px;">🚀</span>
+              <div class="title" style="font-size:11.5px;">App Pods</div>
+              <div class="desc">deployed by ArgoCD</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap: 10px;">
+          <div class="flow-node n-orange" style="min-width:auto; padding: 10px 14px;">
+            <span class="icon" style="font-size:18px;">🔑</span>
+            <div class="title" style="font-size:11.5px;">Azure Key Vault</div>
+            <div class="desc">secrets store ← ESO</div>
+          </div>
+          <div class="flow-node n-cyan" style="min-width:auto; padding: 10px 14px;">
+            <span class="icon" style="font-size:18px;">📈</span>
+            <div class="title" style="font-size:11.5px;">Azure Managed Grafana</div>
+            <div class="desc">dashboards + alerts</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VNet Info -->
+      <div class="vnet-info">
+        <strong>VNet:</strong> 10.0.0.0/8<br>
+        ├── <strong>snet-aks-nodes:</strong> 10.240.0.0/16<br>
+        └── <strong>snet-aks-pods:</strong>&nbsp; 10.241.0.0/16
+      </div>
+    </div>
+
+    <!-- Resource Groups -->
+    <div class="rg-row">
+      <div class="rg-card">
+        <div class="rg-title" style="color: var(--purple);">rg-shared-eus</div>
+        <div class="rg-items">
+          <div class="rg-item n-cyan">
+            <span class="icon">🐳</span>
+            <div class="name">ACR</div>
+            <div class="detail">container registry</div>
+          </div>
+          <div class="rg-item n-orange">
+            <span class="icon">🔑</span>
+            <div class="name">Key Vault</div>
+            <div class="detail">secrets</div>
+          </div>
+        </div>
+      </div>
+      <div class="rg-card">
+        <div class="rg-title" style="color: var(--indigo);">dns-rg (pre-existing)</div>
+        <div class="rg-items">
+          <div class="rg-item n-indigo" style="min-width: 180px;">
+            <span class="icon">🌍</span>
+            <div class="name">Azure DNS Zone</div>
+            <div class="detail">buildverse.site</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monitoring -->
+    <div class="monitor-bar">
+      <span class="mb-label">Observability</span>
+      <div class="mb-item">
+        <span class="mb-icon">📊</span> Azure Managed Prometheus
+      </div>
+      <span class="mb-arrow">──▶</span>
+      <div class="mb-item">
+        <span class="mb-icon">📈</span> Azure Managed Grafana
+      </div>
+      <span style="color:var(--border-light)">│</span>
+      <div class="mb-item">
+        <span class="mb-icon">📋</span> Log Analytics Workspace
+        <span class="mb-detail">(logs)</span>
+      </div>
+    </div>
+
+    <!-- Terraform -->
+    <div class="tf-bar">
+      <span class="tf-icon">🏗️</span>
+      <span class="tf-text">Terraform Cloud</span>
+      <span class="tf-detail">manages all infrastructure above</span>
+      <span style="color:var(--border-light)">│</span>
+      <span class="tf-detail">SSO via Azure Entra ID</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
