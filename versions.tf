@@ -1,14 +1,4 @@
-# Update organization and workspace names for your environment
-terraform { 
-  cloud { 
-    
-    organization = "buildverse" 
-
-    workspaces { 
-      name = "dev" 
-    } 
-  } 
-
+terraform {
   required_version = ">= 1.7.0"
 
   required_providers {

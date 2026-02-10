@@ -5,6 +5,18 @@
 # All other files should not require modification for basic usage.
 # =============================================================================
 
+# Update organization and workspace names for your environment
+terraform { 
+  cloud { 
+    
+    organization = "buildverse" 
+
+    workspaces { 
+      name = "dev" 
+    } 
+  }
+}
+
 locals {
   # ---------------------------------------------------------------------------
   # ENVIRONMENT
