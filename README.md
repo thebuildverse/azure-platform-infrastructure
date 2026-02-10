@@ -33,7 +33,7 @@ Production-grade AKS infrastructure managed entirely through Terraform and Terra
 
 ## End-to-End Architecture
 
-This diagram shows how the infrastructure in **this repo** connects to the application lifecycle managed in [`demo-app`](https://github.com/thebuildverse/demo-app). Everything below the dashed line is what this repo deploys; everything above it is what the demo-app repo handles.
+This diagram shows how the infrastructure in **this repo** connecting to the application lifecycle managed in [`demo-app`](https://github.com/thebuildverse/demo-app).
 
 ![Platform Architecture](assets/platform-infrastructure-architecture.svg)
 
