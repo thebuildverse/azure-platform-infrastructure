@@ -35,66 +35,9 @@ Production-grade AKS infrastructure managed entirely through Terraform and Terra
 
 This diagram shows how the infrastructure in **this repo** connects to the application lifecycle managed in [`demo-app`](https://github.com/thebuildverse/demo-app). Everything below the dashed line is what this repo deploys; everything above it is what the demo-app repo handles.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        APPLICATION LIFECYCLE (demo-app repo)                │
-│                                                                             │
-│   Developer ──▶ git push ──▶ GitHub Actions ──▶ Build & Push Image ──┐      │
-│                                    │                                 │      │
-│                                    │  commits updated                │      │
-│                                    │  image tag back                 ▼      │
-│                                    │  to k8s/base/         Azure Container  │
-│                                    ▼                       Registry (ACR)   │
-│                              ArgoCD detects                      │         │
-│                              manifest change ◀───────────────────┘         │
-│                                    │                                        │
-├ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┤
-│                              PLATFORM (this repo)                           │
-│                                    │                                        │
-│  ┌─────────────────────────────────▼──────────────────────────────────────┐ │
-│  │                        Azure AKS Cluster                               │ │
-│  │   ┌──────────────────────────────────────────────────────────────────┐ │ │
-│  │   │  ┌─────────┐ ┌──────────┐ ┌───────────┐ ┌───────────────────┐  │ │ │
-│  │   │  │ ArgoCD  │ │ Kyverno  │ │  Ingress  │ │  cert-manager     │  │ │ │
-│  │   │  │  (SSO)  │ │ (Policy) │ │  NGINX    │ │  (Let's Encrypt)  │  │ │ │
-│  │   │  └─────────┘ └──────────┘ └───────────┘ └───────────────────┘  │ │ │
-│  │   │  ┌─────────────────┐ ┌───────────────┐ ┌────────────────────┐  │ │ │
-│  │   │  │ External-DNS    │ │  External     │ │  Cilium CNI        │  │ │ │
-│  │   │  │ (Azure DNS)     │ │  Secrets (ESO)│ │  (Network Policy)  │  │ │ │
-│  │   │  └─────────────────┘ └───────┬───────┘ └────────────────────┘  │ │ │
-│  │   │                              │                                  │ │ │
-│  │   │  ┌──────────────────┐ ┌──────▼───────┐ ┌───────────────────┐   │ │ │
-│  │   │  │ App Namespace    │ │  Azure Key   │ │  Azure Managed    │   │ │ │
-│  │   │  │ (apps-*)         │ │  Vault       │ │  Prometheus +     │   │ │ │
-│  │   │  │ ┌──────────────┐ │ │              │ │  Grafana          │   │ │ │
-│  │   │  │ │  App Pods    │ │ └──────────────┘ └───────────────────┘   │ │ │
-│  │   │  │ │  (deployed   │ │                                          │ │ │
-│  │   │  │ │  by ArgoCD)  │ │                                          │ │ │
-│  │   │  │ └──────────────┘ │                                          │ │ │
-│  │   │  └──────────────────┘                                          │ │ │
-│  │   └──────────────────────────────────────────────────────────────────┘ │ │
-│  │                                                                        │ │
-│  │  VNet: 10.0.0.0/8                                                      │ │
-│  │  ├── snet-aks-nodes: 10.240.0.0/16                                     │ │
-│  │  └── snet-aks-pods:  10.241.0.0/16                                     │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                             │
-│  ┌───────────────────────────┐  ┌─────────────────────────────────────────┐ │
-│  │  rg-shared-eus            │  │  dns-rg (pre-existing)                  │ │
-│  │  ┌─────────┐ ┌──────────┐ │  │  ┌──────────────────────────────────┐   │ │
-│  │  │   ACR   │ │Key Vault │ │  │  │  Azure DNS Zone (yourdomain.com)│   │ │
-│  │  └─────────┘ └──────────┘ │  │  └──────────────────────────────────┘   │ │
-│  └───────────────────────────┘  └─────────────────────────────────────────┘ │
-│                                                                             │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │  Monitoring: Azure Managed Prometheus ──▶ Azure Managed Grafana       │ │
-│  │  Logs:       Log Analytics Workspace                                   │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                             │
-│  Terraform Cloud ──▶ manages all infrastructure above                       │
-│  (SSO via Azure Entra ID — see references)                                  │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+![Platform Architecture](platform-infrastructure-architecture.svg)
+
+> An interactive HTML version of this diagram is also available at [`assets/platform-architecture.html`](assets/platform-architecture.html).
 
 ---
 
