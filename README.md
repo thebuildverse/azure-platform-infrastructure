@@ -175,6 +175,7 @@ Update the values in `locals.tf` to match your environment, and configure your T
 
 ```hcl
 
+# Update organization and workspace names for your environment
 terraform {
   cloud {
     organization = "your-terraform-cloud-org"
