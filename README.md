@@ -37,8 +37,7 @@ This diagram shows how the infrastructure in **this repo** connects to the appli
 
 ![Platform Architecture](assets/platform-infrastructure-architecture.svg)
 
-> An interactive version of this diagram is also available at [`https://bytiv.github.io/diagrams/platform-architecture.html`](https://bytiv.github.io/diagrams/platform-architecture.html).
-
+> An interactive version of this diagram is also available at <a href="https://bytiv.github.io/diagrams/platform-architecture.html" target="_blank">`https://bytiv.github.io/diagrams/platform-architecture.html`</a>.
 ---
 
 ## Deployment Order
