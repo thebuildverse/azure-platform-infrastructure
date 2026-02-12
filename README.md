@@ -8,8 +8,8 @@ Production-grade AKS infrastructure managed entirely through Terraform and Terra
 ![Azure](https://img.shields.io/badge/Azure-0078D4?logo=microsoft-azure&logoColor=white)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white)
 ![ArgoCD](https://img.shields.io/badge/ArgoCD-EF7B4D?logo=argo&logoColor=white)
-![Kyverno](https://img.shields.io/badge/Kyverno-FF9800?logo=kubernetes&logoColor=white)
 ![Cilium](https://img.shields.io/badge/Cilium-F8C517?logo=cilium&logoColor=black)
+![Kyverno](https://img.shields.io/badge/Kyverno-FF9800?logo=kubernetes&logoColor=white)
 
 ---
 
